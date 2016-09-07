@@ -65,6 +65,37 @@
 			status = !status;
 		}
 
+		//清除以完成的
+		$scope.clear = function(){
+			var tmp =[];
+			angular.forEach($scope.tasks,function(data,index){
+				if(data.completed==false){
+					tmp.push(data);
+				}
+			})
+			$scope.tasks = tmp;
+		}
+		// $scope.getIsShow = function(){
+		// 	angular.forEach($scope.tasks,function(data,index){
+		// 		if(data.completed){
+		// 			return true;
+		// 		}
+		// 	})
+		// 	return false;
+		// }
+		// forEach不能跳出循环
+		// 隐藏或显示清除按钮。
+        $scope.getIsShow = function() {
+            // 遍历数据，判断数据是否有已完成的
+            for (var i = 0; i < $scope.tasks.length; i++) {
+                var item = $scope.tasks[i];
+                if (item.completed) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
 	}])
 
 })(window,angular);

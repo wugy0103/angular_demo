@@ -53,7 +53,7 @@
 					</li>
 				</ul>
 				<!-- Hidden if no completed items are left ↓ -->
-				<button class="clear-completed">Clear completed</button>
+				<button ng-click="clear()" ng-show="getIsShow()"  class="clear-completed">Clear completed</button>
 			</footer>
 		</section>
 		<footer class="info">
