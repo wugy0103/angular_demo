@@ -28,7 +28,24 @@
 			})
 		}
 
-
+		//添加任务
+		$scope.newTask = "";
+		$scope.add = function(){
+			if(!$scope.newTask){
+				return;
+			}
+			var id;
+			if($scope.tasks.length<=0){
+				$scope.tasks = [];
+				id=0;
+			}else {
+				id = $scope.tasks[$scope.tasks.length-1].id+1;
+			}
+			$scope.tasks.push({
+				id:id,name:$scope.newTask,completed:false
+			})
+			$scope.newTask = "";
+		}
 	}])
 
 })(window,angular);
