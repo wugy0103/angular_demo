@@ -1,7 +1,7 @@
 (function (window,angular) {
 	'use strict';
 	var app = angular.module("myApp",[]);
-	app.controller("todoController",["$scope",function($scope){
+	app.controller("todoController",["$scope","$location",function($scope,$location){
 		// 数据展示
 		$scope.tasks = [
 			{
@@ -95,6 +95,35 @@
             }
             return false;
         }
+
+        // 显示未完成任务数
+        $scope.getUnCompleted = function(){
+        	var count=0;
+			angular.forEach($scope.tasks,function(data){
+				if(data.completed==false){
+					count++;
+				}
+			})  
+			return count;      	
+        }
+
+        //切换不同状态任务的显示
+        $scope.isComoleted = {};
+        $scope.loca = $location;
+        $scope.$watch("loca.url()",function(newV,oldV){
+        	switch(newV){
+        		case '/active':
+        		$scope.isComoleted = {completed:false};
+        		break;
+        		case '/completed':
+        		$scope.isCompleted = {completed:true};
+        		break;
+        		default:
+        		$scope.isCompleted = {};
+        		break;
+        	}
+        })
+
 
 	}])
 
