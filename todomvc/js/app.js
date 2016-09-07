@@ -56,7 +56,14 @@
 			$scope.isEditingId = -1;
 		}
 
-
+		// 批量切换任务状态
+		var status = true;
+		$scope.toggleAll = function(){
+			angular.forEach($scope.tasks,function(data,index){
+				data.completed = status;
+			})
+			status = !status;
+		}
 
 	}])
 
