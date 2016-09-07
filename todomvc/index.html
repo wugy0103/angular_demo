@@ -23,13 +23,15 @@
 				<ul class="todo-list">
 					<!-- These are here just to show the structure of the list items -->
 					<!-- List items should get the class `editing` when editing and `completed` when marked as completed -->
-					<li ng-repeat = "item in tasks" ng-class = "{completed:item.completed}">
+					<li ng-repeat = "item in tasks" ng-class = "{completed:item.completed,editing:isEditingId == item.id}">
 						<div class="view">
 							<input class="toggle" type="checkbox" ng-model = "item.completed">
-							<label>{{item.name}}</label>
+							<label ng-dblclick = "edit(item.id)">{{item.name}}</label>
 							<button ng-click = "remove(item.id)" class="destroy"></button>
 						</div>
-						<input class="edit" value="Create a TodoMVC template">
+						<form ng-submit = "save()">
+							<input class="edit" ng-model = "item.name">
+						</form>
 					</li>
 					
 				</ul>

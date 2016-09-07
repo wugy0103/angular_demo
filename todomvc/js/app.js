@@ -46,6 +46,18 @@
 			})
 			$scope.newTask = "";
 		}
+
+		//编辑
+		$scope.isEditingId = -1;
+		$scope.edit = function(id){
+			$scope.isEditingId = id;
+		}
+		$scope.save = function(){
+			$scope.isEditingId = -1;
+		}
+
+
+
 	}])
 
 })(window,angular);
