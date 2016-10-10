@@ -7,3 +7,6 @@
 。。。
 ###2016.9.7--todomvc案例
   angular.forEach不能跳出循环--隐藏或显示清除按钮getIsShow
+###2016.9.8--todomvc完成
+	但抽取失败
+###2016.10.10--使用Yeoman快速构建基于angular的web应用
