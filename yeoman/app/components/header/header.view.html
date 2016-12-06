@@ -1,0 +1,13 @@
+<div class="header" ng-hide="isOwnPage" ng-controller="HeaderController">
+    <div class="navbar navbar-default" role="navigation">
+        <div class="container-fluid panel panel-default">
+            <div class="navbar-header">
+                <!-- <div class="navbar-brand">技术考评管理 > 考评点管理</div> -->
+            </div>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a>欢迎 <span ng-bind="userName"></span><div class="ripple-container"></div></a></li>
+                <li class="active"><a ng-click="logout()" confirm="确定退出吗？" confirm-title="注销" confirm-ok="确定" confirm-cancel="取消">注销<div class="ripple-container"></div></a></li>
+            </ul>
+        </div>
+    </div>
+</div>

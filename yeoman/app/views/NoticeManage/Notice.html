@@ -1,0 +1,136 @@
+<article ng-controller="NoticeController" class="container-fluid">
+    <!-- 上部分 -->
+    <section class="row">
+        <div class="form-group col-lg-2">
+            <label class="col-md-4 control-label">公告标题</label>
+            <div class="col-md-8">
+                <input type="text" class="form-control" ng-model="data.ac_title">
+            </div>
+        </div>
+    </section>
+    <div class="button-first">
+        <button type="button" class="btn btn-raised btn-primary" ng-click="query()">查询</button>
+        <button type="button" class="btn btn-raised btn-default" ng-click="reset()">重置</button>
+        <button type="button" class="btn btn-raised btn-primary ml20" ng-click="add()">添加</button>
+    </div>
+    <!-- 下部分 -->
+    <section>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-head">
+                    <tr class="active">
+                        <th>序号</th>
+                        <th>公告标题</th>
+                        <th>公告内容</th>
+                        <th>公告创建日期</th>
+                        <th class="text-center">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="Notice in Notices">
+                        <td>{{($index+1)+(((PageIndex||1)-1)*PageSize)}}</td>
+                        <td>{{Notice.ac_title}}</td>
+                        <td>{{Notice.ac_content | limitTo:30}}</td>
+                        <td>{{Notice.ac_date}}</td>
+                        <td class="text-center">
+                            <a ng-click="update(Notice)" class="pointer">编辑</a>
+                            <a confirm="确定删除吗？" confirm-title="删除" confirm-ok="确定" confirm-cancel="取消" ng-click="remove(Notice.ac_id)" class="pointer">删除</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div cg-busy="NoticePromise"></div>
+        <div class="row">
+            <div class="col-md-9">
+                <select class="page-size" ng-model="PageSize" ng-change="pageChanged()">
+                    <option value="20" ng-selected="true">每页显示20条</option>
+                    <option value="40">每页显示40条</option>
+                    <option value="60">每页显示60条</option>
+                    <option value="80">每页显示80条</option>
+                    <option value="100">每页显示100条</option>
+                </select>
+                <uib-pagination ng-model="PageIndex" ng-change="pageChanged()" total-items="NoticeCount" max-size="maxSize" items-per-page="PageSize" class="pagination-sm" boundary-link-numbers="true" rotate="false" previous-text="上一页" next-text="下一页"></uib-pagination>
+            </div>
+            <div class="col-md-3 text-right">
+                <span>跳转到</span>
+                <input type="text" ng-model="toPageNum" class="variant-form-control">
+                <button ng-click="setPage()" class="to-page-num">确定</button>
+            </div>
+        </div>
+    </section>
+</article>
+<!--添加弹框-->
+<script type="text/ng-template" id="AddNotice.html">
+    <form name="NoticeAddForm">
+        <div class="panel-body">
+            <h4>添加公告</h4>
+            <section class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">公告标题</label>
+                        <div class="col-md-10">
+                            <input type="text" name="title" ng-maxlength="20" class="form-control" required ng-model="data.ac_title">
+                            <small class="text-danger" ng-show="NoticeAddForm.title.$error.maxlength">
+                                字数不能超过20
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">公告内容</label>
+                        <div class="col-md-10">
+                            <textarea class="form-control" name="content" ng-maxlength="500" required ng-model="data.ac_content"></textarea>
+                            <small class="text-danger" ng-show="NoticeAddForm.content.$error.maxlength">
+                                字数不能超过500
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div class="modal-footer">
+            <span class="text-danger pull-left" ng-bind="error"></span>
+            <button class="btn withripple btn-raised btn-primary" type="button" ng-click="save()" ng-disabled="!NoticeAddForm.$valid">确定</button>
+            <button class="btn withripple btn-raised btn-warning" type="button" ng-click="close()">关闭</button>
+        </div>
+    </form>
+</script>
+<!--修改弹框-->
+<script type="text/ng-template" id="UpdateNotice.html">
+    <form name="NoticeUpdateForm">
+        <div class="panel-body">
+            <h4>修改公告</h4>
+            <section class="row">
+                <div class="col-md-12">
+                    <div class="col-md-12 form-group">
+                        <label class="col-md-2 control-label">公告标题</label>
+                        <div class="col-md-10">
+                            <input type="text" name="title" ng-maxlength="20" required class="form-control" ng-model="Notice.ac_title">
+                            <small class="text-danger" ng-show="NoticeUpdateForm.title.$error.maxlength">
+                                字数不能超过20
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-12 form-group">
+                        <label class="col-md-2 control-label">公告内容</label>
+                        <div class="col-md-10">
+                            <textarea class="form-control" name="content" ng-maxlength="500" required ng-model="Notice.ac_content"></textarea>
+                            <small class="text-danger" ng-show="NoticeUpdateForm.content.$error.maxlength">
+                                字数不能超过500
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div class="modal-footer">
+            <span class="text-danger pull-left" ng-bind="error"></span>
+            <button class="btn withripple btn-raised btn-primary" type="button" ng-click="save()" ng-disabled="!NoticeUpdateForm.$valid">修改</button>
+            <button class="btn withripple btn-raised btn-warning" type="button" ng-click="close()">关闭</button>
+        </div>
+    </form>
+</script>

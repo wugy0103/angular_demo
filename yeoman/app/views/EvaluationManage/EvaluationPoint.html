@@ -1,0 +1,329 @@
+<article ng-controller="EvaluationPointController" class="container-fluid">
+    <!-- 上部分 -->
+    <section class="row">
+        <div class="form-group col-lg-2">
+            <label class="col-md-4 control-label">考评点名称</label>
+            <div class="col-md-8">
+                <input type="text" class="form-control" ng-model="data.el_name">
+            </div>
+        </div>
+        <div class="form-group col-md-2">
+            <label class="col-md-4 control-label">省份</label>
+            <div class="col-md-8">
+                <ui-select ng-model="data.pro_code" theme="bootstrap" on-select="initCity($item)">
+                    <ui-select-match allow-clear="true" placeholder="全部">{{$select.selected.city_name}}</ui-select-match>
+                    <ui-select-choices repeat="item.city_code as item in provinces | orderBy:'city_code' | filter: $select.search">
+                        <span ng-bind-html="item.city_name | highlight: $select.search"></span>
+                    </ui-select-choices>
+                </ui-select>
+            </div>
+        </div>
+        <div class="form-group col-md-2">
+            <label class="col-md-4 control-label">城市</label>
+            <div class="col-md-8">
+                <ui-select ng-model="data.city_code" theme="bootstrap" ng-disabled="data.pro_code==undefined?true:false">
+                    <ui-select-match allow-clear="true" placeholder="全部">{{$select.selected.city_name}}</ui-select-match>
+                    <ui-select-choices repeat="item.city_code as item in cities | orderBy:'city_code' | filter: $select.search">
+                        <span ng-bind-html="item.city_name | highlight: $select.search"></span>
+                    </ui-select-choices>
+                </ui-select>
+            </div>
+        </div>
+        <div class="form-group col-lg-2">
+            <label class="col-md-4 control-label">院校</label>
+            <div class="col-md-8">
+                <input type="text" class="form-control" ng-model="data.school_name">
+            </div>
+        </div>
+    </section>
+    <div class="button-first">
+        <button type="button" class="btn btn-raised btn-primary" ng-click="query()">查询</button>
+        <button type="button" class="btn btn-raised btn-default" ng-click="reset()">重置</button>
+        <button type="button" class="btn btn-raised btn-primary ml20" ng-click="add()">新增</button>
+        <button type="button" class="btn btn-raised btn-default" ng-click="import()">导入</button>
+    </div>
+    <!-- 下部分 -->
+    <section>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-head">
+                    <tr class="active">
+                        <th>序号</th>
+                        <th>考评点</th>
+                        <th>省份</th>
+                        <th>城市</th>
+                        <th>地址</th>
+                        <th>所在院校</th>
+                        <th>院校类型</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="EvaluationPoint in EvaluationPoints">
+                        <td>{{($index+1)+(((PageIndex||1)-1)*PageSize)}}</td>
+                        <td>{{EvaluationPoint.el_name}}</td>
+                        <td>{{EvaluationPoint.city_name | getStringByIndex:'|':0}}</td>
+                        <td>{{EvaluationPoint.city_name | getStringByIndex:'|':1}}</td>
+                        <td>{{EvaluationPoint.el_address}}</td>
+                        <td>{{EvaluationPoint.school.school_name}}</td>
+                        <td>{{EvaluationPoint.school.schooltype.schooltype_name}}</td>
+                        <td>
+                            <a ng-click="showClerk(EvaluationPoint.el_id)" class="pointer">查看考评员</a>
+                            <a ng-click="update(EvaluationPoint)" class="pointer">编辑</a>
+                            <a ng-click="remove(EvaluationPoint.el_id)" class="pointer" confirm="确定删除吗？" confirm-title="删除" confirm-ok="确定" confirm-cancel="取消">删除</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div cg-busy="EvaluationPointPromise"></div>
+        <div class="row">
+            <div class="col-md-9">
+                <select class="page-size" ng-model="PageSize" ng-change="pageChanged()">
+                    <option value="20" ng-selected="true">每页显示20条</option>
+                    <option value="40">每页显示40条</option>
+                    <option value="60">每页显示60条</option>
+                    <option value="80">每页显示80条</option>
+                    <option value="100">每页显示100条</option>
+                </select>
+                <uib-pagination ng-model="PageIndex" ng-change="pageChanged()" total-items="EvaluationPointCount" max-size="maxSize" items-per-page="PageSize" class="pagination-sm" boundary-link-numbers="true" rotate="false" previous-text="上一页" next-text="下一页"></uib-pagination>
+            </div>
+            <div class="col-md-3 text-right">
+                <span>跳转到</span>
+                <input type="text" ng-model="toPageNum" class="variant-form-control">
+                <button ng-click="setPage()" class="to-page-num">确定</button>
+            </div>
+        </div>
+    </section>
+</article>
+<!--查看考评员-->
+<script type="text/ng-template" id="Clerks.html">
+    <form name="ClerksForm">
+        <div class="panel-body">
+            <h4>考评员</h4>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-head">
+                        <tr class="active">
+                            <th>考评员</th>
+                            <th>手机号码</th>
+                            <th>分成比例</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="clerk in clerks">
+                            <td>{{clerk.userInfo.real_name}}</td>
+                            <td>{{clerk.userInfo.telephone}}</td>
+                            <td>{{clerk.teacher_devidepercent}}%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <span class="text-danger pull-left" ng-bind="error"></span>
+            <button class="btn withripple btn-raised btn-warning" type="button" ng-click="close()">关闭</button>
+        </div>
+    </form>
+</script>
+<!--添加-->
+<script type="text/ng-template" id="AddEvaluationPoint.html">
+    <form name="EvaluationPointAddForm">
+        <div class="panel-body">
+            <h4>新增考评点</h4>
+            <section class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="col-md-1 control-label">考评点名称</label>
+                        <div class="col-md-11">
+                            <input type="text" required class="form-control" placeholder="" ng-model="EvaluationPoint.el_name" />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">所在省份</label>
+                        <div class="col-md-9">
+                            <ui-select required ng-model="EvaluationPoint.pro_code" theme="bootstrap" on-select="initCity($item)">
+                                <ui-select-match allow-clear="true" placeholder="全部">{{$select.selected.city_name}}</ui-select-match>
+                                <ui-select-choices repeat="item.city_code as item in provinces | orderBy:'city_code' | filter: $select.search">
+                                    <span ng-bind-html="item.city_name | highlight: $select.search"></span>
+                                </ui-select-choices>
+                            </ui-select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">所在城市</label>
+                        <div class="col-md-9">
+                            <ui-select required ng-model="EvaluationPoint.city_code" theme="bootstrap" on-select="initSchool()" ng-disabled="!EvaluationPoint.pro_code">
+                                <ui-select-match allow-clear="true" placeholder="全部">{{$select.selected.city_name}}</ui-select-match>
+                                <ui-select-choices repeat="item.city_code as item in cities | orderBy:'city_code' | filter: $select.search">
+                                    <span ng-bind-html="item.city_name | highlight: $select.search"></span>
+                                </ui-select-choices>
+                            </ui-select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">院校类型</label>
+                        <div class="col-md-9">
+                            <ui-select required ng-model="EvaluationPoint.school_type" theme="bootstrap" on-select="initSchool()" ng-disabled="!EvaluationPoint.city_code">
+                                <ui-select-match allow-clear="true" placeholder="全部">{{$select.selected.schooltype_name}}</ui-select-match>
+                                <ui-select-choices repeat="item.schooltype_id as item in schoolType | filter: $select.search">
+                                    <span ng-bind-html="item.schooltype_name | highlight: $select.search"></span>
+                                </ui-select-choices>
+                            </ui-select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">所在院校</label>
+                        <div class="col-md-9"> 
+                            <ui-select required ng-model="EvaluationPoint.school_code" theme="bootstrap" ng-disabled="!EvaluationPoint.school_type||!EvaluationPoint.city_code||!EvaluationPoint.pro_code">
+                                <ui-select-match allow-clear="true" placeholder="全部">{{$select.selected.school_name}}</ui-select-match>
+                                <ui-select-choices repeat="item.school_code as item in schools | filter: $select.search">
+                                    <span ng-bind-html="item.school_name | highlight: $select.search"></span>
+                                </ui-select-choices>
+                            </ui-select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="col-md-1 control-label">考评地址</label>
+                        <div class="col-md-11">
+                            <input type="text" class="form-control" required ng-model="EvaluationPoint.el_address" />
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div class="modal-footer">
+            <span class="text-danger pull-left" ng-bind="error"></span>
+            <button class="btn withripple btn-raised btn-primary" type="button" ng-click="save()" ng-disabled="!EvaluationPointAddForm.$valid">添加</button>
+            <button class="btn withripple btn-raised btn-warning" type="button" ng-click="close()">关闭</button>
+        </div>
+    </form>
+</script>
+
+<!--修改-->
+<script type="text/ng-template" id="UpdateEvaluationPoint.html">
+    <form name="EvaluationPointUpdateForm">
+        <div class="panel-body">
+            <h4>修改考评点</h4>
+            <section class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="col-md-1 control-label">考评点名称</label>
+                        <div class="col-md-11">
+                            <input type="text" class="form-control" placeholder="" ng-model="EvaluationPoint.el_name" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">所在省份</label>
+                        <div class="col-md-9">
+                            <ui-select required ng-model="EvaluationPoint.pro_code" theme="bootstrap" on-select="initCity($item)">
+                                <ui-select-match allow-clear="true" placeholder="全部">{{$select.selected.city_name}}</ui-select-match>
+                                <ui-select-choices repeat="item.city_code as item in provinces | orderBy:'city_code' | filter: $select.search">
+                                    <span ng-bind-html="item.city_name | highlight: $select.search"></span>
+                                </ui-select-choices>
+                            </ui-select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">所在城市</label>
+                        <div class="col-md-9">
+                            <ui-select required ng-model="EvaluationPoint.city_code" theme="bootstrap" on-select="initSchool()" ng-disabled="!EvaluationPoint.pro_code">
+                                <ui-select-match allow-clear="true" placeholder="全部">{{$select.selected.city_name}}</ui-select-match>
+                                <ui-select-choices repeat="item.city_code as item in cities | orderBy:'city_code' | filter: $select.search">
+                                    <span ng-bind-html="item.city_name | highlight: $select.search"></span>
+                                </ui-select-choices>
+                            </ui-select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">院校类型</label>
+                        <div class="col-md-9">
+                            <ui-select required ng-model="EvaluationPoint.school_type" theme="bootstrap" on-select="initSchool()" ng-disabled="!EvaluationPoint.city_code">
+                                <ui-select-match allow-clear="true" placeholder="全部">{{$select.selected.schooltype_name}}</ui-select-match>
+                                <ui-select-choices repeat="item.schooltype_id as item in schoolType | filter: $select.search">
+                                    <span ng-bind-html="item.schooltype_name | highlight: $select.search"></span>
+                                </ui-select-choices>
+                            </ui-select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">所在院校</label>
+                        <div class="col-md-9"> 
+                            <ui-select required ng-model="EvaluationPoint.school_code" theme="bootstrap" ng-disabled="!EvaluationPoint.school_type||!EvaluationPoint.city_code||!EvaluationPoint.pro_code">
+                                <ui-select-match allow-clear="true" placeholder="全部">{{$select.selected.school_name}}</ui-select-match>
+                                <ui-select-choices repeat="item.school_code as item in schools | filter: $select.search">
+                                    <span ng-bind-html="item.school_name | highlight: $select.search"></span>
+                                </ui-select-choices>
+                            </ui-select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="col-md-1 control-label">考评地址</label>
+                        <div class="col-md-11">
+                            <input type="text" class="form-control" required ng-model="EvaluationPoint.el_address" />
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div class="modal-footer">
+            <span class="text-danger pull-left" ng-bind="error"></span>
+            <button class="btn withripple btn-raised btn-primary" type="button" ng-click="save()" ng-disabled="!EvaluationPointUpdateForm.$valid">修改</button>
+            <button class="btn withripple btn-raised btn-warning" type="button" ng-click="close()">关闭</button>
+        </div>
+    </form>
+</script>
+<!--导入弹框-->
+<script type="text/ng-template" id="ImportEvaluationPoint.html">
+    <div class="panel-body">
+        <h4>导入考评点</h4>
+        <div class="form-group">
+            <label class="col-md-12 control-label">1.请下载下方EXCEL模板；</label>
+            <div class="col-md-12">
+                <a href="{{EvaluationPointExcel}}" class="excel"><i class="fa fa-file-excel-o" aria-hidden="true"></i></a>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-12 control-label">2.按照模板填写完成后，将模板上传；</label>
+            <div class="col-md-12">
+            <form name="uploadFileForm" ng-upload="uploadComplete(content)" action="/common/upload">
+                <div class="row">
+                    <div class="col-md-6">
+                        <input type="text" readonly="" class="form-control" placeholder="Browse...">
+                        <input type="file" name="file" required accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"/>
+                    </div>
+                    <div class="col-md-6">
+                        <button type="submit" class="btn btn-raised btn-primary" ng-disabled="$isUploading&&uploadFileForm.$valid">上传</button>
+                        <span class="text-success" ng-bind="message"></span>
+                    </div>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+        <div class="modal-footer">
+            <span class="text-danger pull-left" ng-bind="error"></span>
+            <button class="btn withripple btn-raised btn-primary" type="button" ng-click="save()" ng-disabled="!data.fileName">导入</button>
+            <button class="btn withripple btn-raised btn-warning" type="button" ng-click="close()">关闭</button>
+        </div>
+</script>

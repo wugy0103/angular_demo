@@ -1,0 +1,41 @@
+<div class="well" ng-controller="UserLoginController" ng-init="load()">
+    <form name="loginForm" class="form-horizontal" focusOnFirstInvalidInput>
+        <fieldset>
+            <legend class="text-center">全国学校武术段位晋段后台管理系统</legend>
+            <div class="form-group">
+                <label for="inputEmail" class="col-md-2 control-label">账号</label>
+                <div class="col-md-10">
+                    <input type="username" class="form-control" id="inputUserName" required ng-model="credentials.username">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inputPassword" class="col-md-2 control-label">密码</label>
+                <div class="col-md-10">
+                    <input type="password" class="form-control" id="inputPassword" required ng-model="credentials.pwd">
+                </div>
+            </div>
+            <div class="form-group" ng-if = "credentials.msgflag">
+                <label for="code" class="col-md-3 control-label">短信验证码</label>
+                <div class="col-md-4">
+                    <input type="text" class="form-control" id="code"  ng-model="credentials.code" required>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-raised btn-primary" id="verify" ng-click="getCode()">获取验证码</button>
+                </div>
+           </div>
+			<!--<div class="form-group" ng-hide="credentials.msgflag">
+				<label for="code" class="col-md-3 control-label">请输入验证码</label>
+                <div class="col-md-4">
+                    <input type="text" class="form-control" id="code"  ng-model="credentials.code" required>
+                </div>
+                <div class="col-md-4">
+                	<img ng-src="data:image/png;base64,{{imgpath}}"/>
+                </div>
+			</div>-->
+            <span class="text-danger loginError" ng-bind="error"></span>
+            <button ng-click="loginForm.$valid && login(credentials)" promise-btn="loginPromise" class="btn btn-primary pull-right">登陆 </button>
+        </fieldset>
+    </form>
+</div>
+
+

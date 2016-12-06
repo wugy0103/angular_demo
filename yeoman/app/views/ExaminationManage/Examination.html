@@ -1,0 +1,178 @@
+<article ng-controller="ExaminationController" class="container-fluid">
+    <!-- 下部分 -->
+    <section>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-head">
+                    <tr class="active">
+                        <th>段位</th>
+                        <th>报名费用</th>
+                        <th>晋段年限</th>
+                        <th>报名开始时间</th>
+                        <th>报名结束时间</th>
+                        <th>考试开始时间</th>
+                        <th>考试结束时间</th>
+                        <th>考试时长</th>
+                        <th>是否重复考试</th>
+                        <th>重复次数</th>
+                        <th>考试状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="Examination in Examinations">
+                        <td>{{Examination.es_leveldesc}}</td>
+                        <td>￥{{Examination.es_examcost}}</td>
+                        <td>{{Examination.es_uplevellimit}}</td>
+                        <td>{{Examination.es_enrollstart*1000 | date:'yyyy-MM-dd HH:mm'}}</td>
+                        <td>{{Examination.es_enrollend*1000 | date:'yyyy-MM-dd HH:mm'}}</td>
+                        <td>{{Examination.es_examstart*1000 | date:'yyyy-MM-dd HH:mm'}}</td>
+                        <td>{{Examination.es_examend*1000 | date:'yyyy-MM-dd HH:mm'}}</td>
+                        <td>{{Examination.es_examduration}}</td>
+                        <td>{{Examination.es_isrepeat?"是":"否"}}</td>
+                        <td>{{Examination.es_repeattimes}}</td>
+                        <td>{{Examination.es_switch?"开启":"关闭"}}</td>
+                        <td><a ng-click="update(Examination)" class="pointer">编辑</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div cg-busy="ExaminationPromise"></div>
+    </section>
+</article>
+
+<!--修改密码弹框-->
+<script type="text/ng-template" id="UpdateExamination.html">
+    <form name="ExaminationUpdateForm">
+        <div class="panel-body">
+            <h4>修改段位考试</h4>
+            <section class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">考试段位</label>
+                        <div class="col-md-9">
+                            <input type="text" class="form-control" required disabled ng-model="Examination.es_leveldesc" />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">考试时长</label>
+                        <div class="col-md-9">
+                            <input type="number" step="any" min="0" class="form-control" required ng-model="Examination.es_examduration" />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">报名费用</label>
+                        <div class="col-md-9">
+                            <input type="number" step="any" min="0" class="form-control" required ng-model="Examination.es_examcost" />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">晋段年限</label>
+                        <div class="col-md-9">
+                            <input type="number" step="any" min="0" class="form-control" required ng-model="Examination.es_uplevellimit" />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">报名开始时间</label>
+                        <div class="col-md-9">
+                            <div class="dropdown">
+                                <input type="text" name="enrollstart" disabled class="form-control" ng-model="Examination.enrollstart" datetime-transform format="yyyy-MM-dd HH:mm">
+                                <i class="glyphicon glyphicon-calendar rili-icon dropdown-toggle" id="enrollstart" role="button" data-toggle="dropdown"></i>
+                                <ul class="dropdown-menu" role="menu" aria-labelledby="enrollstart">
+                                    <datetimepicker ng-model="Examination.enrollstart" data-datetimepicker-config="{dropdownSelector: '#enrollstart'}" on-set-time="onEnrollstartSeleted(newDate, oldDate)"></datetimepicker>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">报名结束时间</label>
+                        <div class="col-md-9">
+                            <div class="dropdown">
+                                <input type="text" name="enrollend" disabled class="form-control" ng-model="Examination.enrollend" datetime-transform format="yyyy-MM-dd HH:mm">
+                                <i class="glyphicon glyphicon-calendar rili-icon dropdown-toggle" id="enrollend" role="button" data-toggle="dropdown"></i>
+                                <ul class="dropdown-menu" role="menu" aria-labelledby="enrollend">
+                                    <datetimepicker ng-model="Examination.enrollend" data-datetimepicker-config="{dropdownSelector: '#enrollend'}" on-set-time="onEnrollendSeleted(newDate, oldDate)"></datetimepicker>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">考试开始时间</label>
+                        <div class="col-md-9">
+                            <div class="dropdown">
+                                <input type="text" name="examstart" disabled class="form-control" ng-model="Examination.examstart" datetime-transform format="yyyy-MM-dd HH:mm">
+                                <i class="glyphicon glyphicon-calendar rili-icon dropdown-toggle" id="examstart" role="button" data-toggle="dropdown"></i>
+                                <ul class="dropdown-menu" role="menu" aria-labelledby="examstart">
+                                    <datetimepicker ng-model="Examination.examstart" data-datetimepicker-config="{dropdownSelector: '#examstart'}" on-set-time="onExamstartSeleted(newDate, oldDate)"></datetimepicker>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">考试结束时间</label>
+                        <div class="col-md-9">
+                            <div class="dropdown">
+                                <input type="text" name="examend" disabled class="form-control" ng-model="Examination.examend" datetime-transform format="yyyy-MM-dd HH:mm">
+                                <i class="glyphicon glyphicon-calendar rili-icon dropdown-toggle" id="examend" role="button" data-toggle="dropdown"></i>
+                                <ul class="dropdown-menu" role="menu" aria-labelledby="examend">
+                                    <datetimepicker ng-model="Examination.examend" data-datetimepicker-config="{dropdownSelector: '#examend'}" on-set-time="onExamendSeleted(newDate, oldDate)"></datetimepicker>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">重复考试</label>
+                        <div class="col-md-9">
+                          <div class="togglebutton">
+                            <label>
+                              <input type="checkbox" checked="" ng-model="Examination.es_isrepeat"><span class="toggle"></span>
+                            </label>
+                          </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">重考次数</label>
+                        <div class="col-md-9">
+                            <input type="number" step="1" min="1" class="form-control" ng-disabled="!Examination.es_isrepeat" required ng-model="Examination.es_repeattimes" />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">考试状态</label>
+                        <div class="col-md-9">
+                          <div class="togglebutton">
+                            <label>
+                              <input type="checkbox" ng-model="Examination.es_switch" disabled><span class="toggle"></span>
+                            </label>
+                          </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div class="modal-footer">
+            <span class="text-danger pull-left" ng-bind="error"></span>
+            <button class="btn withripple btn-raised btn-primary" type="button" ng-click="save()" ng-disabled="!ExaminationUpdateForm.$valid||!valid">修改</button>
+            <button class="btn withripple btn-raised btn-warning" type="button" ng-click="close()">关闭</button>
+        </div>
+    </form>
+</script>

@@ -1,0 +1,46 @@
+<ul class="nav nav-list side-nav panel panel-default" active-link ng-controller="SideNavController">
+    <li class="side-brand">
+        <a href="#/">
+            <div><i class="fa fa-bell" aria-hidden="true"></i></div>
+            <div class="side-title">晋段后台管理</div>
+        </a>
+    </li>
+    <li hide-parent="ul">
+        <label class="top-tree tree-toggle withripple" toggle-menu><i class="fa fa-users" aria-hidden="true"></i>用户管理<i aria-hidden="true" class="fa fa-angle-right pull-right"></i></label>
+        <ul class="nav nav-list tree">
+            <li><a class="withripple third-tree" ng-href="#/UserManage/RegisteredUsers"><i class="fa fa-circle" aria-hidden="true"></i>已注册用户</a></li>
+            <li><a class="withripple third-tree" ng-href="#/UserManage/SignedUsers"><i class="fa fa-circle" aria-hidden="true"></i>已报名用户</a></li>
+            <li><a class="withripple third-tree" ng-href="#/UserManage/ExaminationResults"><i class="fa fa-circle" aria-hidden="true"></i>笔试成绩查询</a></li>
+        </ul>
+    </li>
+    <li hide-parent="ul">
+        <label class="top-tree tree-toggle withripple" toggle-menu><i class="fa fa-bars" aria-hidden="true"></i>题库管理<i aria-hidden="true" class="fa fa-angle-right pull-right"></i></label>
+        <ul class="nav nav-list tree">
+            <li><a class="withripple third-tree" ng-href="#/QuestionsManage/ChoiceQuestions"><i class="fa fa-circle" aria-hidden="true"></i>选择题题库</a></li>
+            <li><a class="withripple third-tree" ng-href="#/QuestionsManage/TrueOrFalseQuestions"><i class="fa fa-circle" aria-hidden="true"></i>判断题题库</a></li>
+        </ul>
+    </li>
+    <li hide-parent="ul">
+        <label class="top-tree tree-toggle withripple" toggle-menu><i class="fa fa-th-large" aria-hidden="true"></i>考试管理<i aria-hidden="true" class="fa fa-angle-right pull-right"></i></label>
+        <ul class="nav nav-list tree">
+            <li><a class="withripple third-tree" ng-href="#/ExaminationManage/Project"><i class="fa fa-circle" aria-hidden="true"></i>项目设置</a></li>
+            <li><a class="withripple third-tree" ng-href="#/ExaminationManage/Examination"><i class="fa fa-circle" aria-hidden="true"></i>考试设置</a></li>
+            <li><a class="withripple third-tree" ng-href="#/ExaminationManage/ExaminationPaper"><i class="fa fa-circle" aria-hidden="true"></i>试卷设置</a></li>
+        </ul>
+    </li>
+    <li hide-parent="ul">
+        <label class="top-tree tree-toggle withripple" toggle-menu><i class="fa fa-file-text-o" aria-hidden="true"></i>技术考评管理<i aria-hidden="true" class="fa fa-angle-right pull-right"></i></label>
+        <ul class="nav nav-list tree">
+            <li><a class="withripple third-tree" ng-href="#/EvaluationManage/EvaluationPoint"><i class="fa fa-circle" aria-hidden="true"></i>考评点管理</a></li>
+            <li><a class="withripple third-tree" ng-href="#/EvaluationManage/EvaluationClerk"><i class="fa fa-circle" aria-hidden="true"></i>考评员管理</a></li>
+            <li><a class="withripple third-tree" ng-href="#/EvaluationManage/EvaluationScore"><i class="fa fa-circle" aria-hidden="true"></i>技术考评得分管理</a></li>
+            <li><a class="withripple third-tree" ng-href="#/EvaluationManage/EvaluationResults"><i class="fa fa-circle" aria-hidden="true"></i>技术考评成绩查询</a></li>
+        </ul>
+    </li>
+    <li hide-parent="ul">
+        <label class="top-tree tree-toggle withripple" toggle-menu><i class="fa fa-bell" aria-hidden="true"></i>通知管理<i aria-hidden="true" class="fa fa-angle-right pull-right"></i></label>
+        <ul class="nav nav-list tree">
+            <li><a class="withripple third-tree" ng-href="#/NoticeManage/Notice"><i class="fa fa-circle" aria-hidden="true"></i>通知列表</a></li>
+        </ul>
+    </li>
+</ul>

@@ -1,0 +1,293 @@
+<article ng-controller="TrueOrFalseQuestionsController" class="container-fluid">
+    <!-- 上部分 -->
+    <section class="row">
+        <div class="form-group col-md-2">
+            <label class="col-md-4 control-label">题型</label>
+            <div class="col-md-8">
+                <ui-select ng-model="data.tf_isrequired" theme="bootstrap">
+                    <ui-select-match allow-clear="true" placeholder="全部">{{$select.selected.NAME}}</ui-select-match>
+                    <ui-select-choices repeat="item.STATUS as item in question | filter: $select.search">
+                        <span ng-bind-html="item.NAME | highlight: $select.search"></span>
+                    </ui-select-choices>
+                </ui-select>
+            </div>
+        </div>
+        <div class="form-group col-md-2">
+            <label class="col-md-4 control-label">试题</label>
+            <div class="col-md-8">
+                <input type="text" class="form-control" ng-model="data.tf_title">
+            </div>
+        </div>
+    </section>
+    <section class="row">
+        <div class="col-md-6">
+            <div class="button-first">
+                <button type="button" class="btn btn-raised btn-primary" ng-click="query()">查询</button>
+                <button type="button" class="btn btn-raised btn-default" ng-click="reset()">重置</button>
+                <button type="button" class="btn btn-raised btn-primary ml20" ng-click="add()">新增</button>
+                <button type="button" class="btn btn-raised btn-default" ng-click="import()">导入</button>
+            </div>
+            <div class="button-first">
+                <button type="button" class="btn btn-raised btn-warning" confirm="确定删除吗？" confirm-title="删除" confirm-ok="确定" confirm-cancel="取消" ng-click="remove()">删除</button>
+            </div>
+        </div>
+    </section>
+    <!-- 下部分 -->
+    <section>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-head">
+                    <tr class="active">
+                        <th>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="isAllSelected" ng-click="toggleAll()">
+                                    <span class="checkbox-material"><span class="check"></span></span>
+                                </label>
+                            </div>
+                        </th>
+                        <th>序号</th>
+                        <th>试题</th>
+                        <th>答案</th>
+                        <th>题型</th>
+                        <th>创建时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="TrueOrFalseQuestion in TrueOrFalseQuestions">
+                        <td>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" checked="" ng-model="TrueOrFalseQuestion.selected" ng-change="optionToggled()" ><span class="checkbox-material"><span class="check"></span></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td>{{($index+1)+(((PageIndex||1)-1)*PageSize)}}</td>
+                        <td>{{TrueOrFalseQuestion.tf_title| limitTo:30}}</td>
+                        <td>{{TrueOrFalseQuestion.tf_istrue}}</td>
+                        <td>{{TrueOrFalseQuestion.tf_isrequired?"必选":"非必选"}}</td>
+                        <td>{{TrueOrFalseQuestion.tf_createtime*1000 | date:"yyyy-MM-dd HH:mm"}}</td>
+                        <td><a ng-click="update(TrueOrFalseQuestion)" class="pointer">编辑</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div cg-busy="TrueOrFalseQuestionPromise"></div>
+        <div class="row">
+            <div class="col-md-9">
+                <select class="page-size" ng-model="PageSize" ng-change="pageChanged()">
+                    <option value="20" ng-selected="true">每页显示20条</option>
+                    <option value="40">每页显示40条</option>
+                    <option value="60">每页显示60条</option>
+                    <option value="80">每页显示80条</option>
+                    <option value="100">每页显示100条</option>
+                </select>
+                <uib-pagination ng-model="PageIndex" ng-change="pageChanged()" total-items="TrueOrFalseQuestionCount" max-size="maxSize" items-per-page="PageSize" class="pagination-sm" boundary-link-numbers="true" rotate="false" previous-text="上一页" next-text="下一页"></uib-pagination>
+            </div>
+            <div class="col-md-3 text-right">
+                <span>跳转到</span>
+                <input type="text" ng-model="toPageNum" class="variant-form-control">
+                <button ng-click="setPage()" class="to-page-num">确定</button>
+            </div>
+        </div>
+    </section>
+</article>
+
+<!--添加弹框-->
+<script type="text/ng-template" id="AddTrueOrFalseQuestion.html">
+    <form name="TrueOrFalseQuestionAddForm">
+        <div class="panel-body">
+            <h4>添加判断题</h4>
+            <div class="form-group">
+                <label class="col-md-1 control-label">题目</label>
+                <div class="col-md-11">
+                    <textarea class="form-control" required ng-model="data.tf_title" placeholder="请输入题目"></textarea>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="col-md-1 control-label mt0">正确答案</label>
+                        <div class="col-md-6">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" name="answer" ng-value="1" checked="" required ng-model="data.tf_istrue">
+                                            正确
+                                            <span class="circle"></span>
+                                            <span class="check"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" name="answer" ng-value="0" checked="" required ng-model="data.tf_istrue">
+                                            错误
+                                            <span class="circle"></span>
+                                            <span class="check"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="col-md-1 control-label mt0">是否必选</label>
+                        <div class="col-md-6">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" name="isrequired" ng-value="1" checked="" required ng-model="data.tf_isrequired">
+                                            必选
+                                            <span class="circle"></span>
+                                            <span class="check"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" name="isrequired" ng-value="0" checked="" required ng-model="data.tf_isrequired">
+                                            非必选
+                                            <span class="circle"></span>
+                                            <span class="check"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <span class="text-danger pull-left" ng-bind="error"></span>
+            <button class="btn withripple btn-raised btn-primary" type="button" ng-click="save()" ng-disabled="!TrueOrFalseQuestionAddForm.$valid">保存</button>
+            <button class="btn withripple btn-raised btn-warning" type="button" ng-click="close()">关闭</button>
+        </div>
+    </form>
+</script>
+<!--修改弹框-->
+<script type="text/ng-template" id="UpdateTrueOrFalseQuestion.html">
+    <form name="TrueOrFalseQuestionUpdateForm">
+        <div class="panel-body">
+            <h4>修改判断题</h4>
+            <div class="form-group">
+                <label class="col-md-1 control-label">题目</label>
+                <div class="col-md-11">
+                    <textarea class="form-control" ng-model="TrueOrFalseQuestion.tf_title" placeholder="请输入题目"></textarea>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="col-md-1 control-label mt0">正确答案</label>
+                        <div class="col-md-6">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" name="answer" ng-value="1" checked="" ng-model="TrueOrFalseQuestion.tf_istrue">
+                                            正确
+                                            <span class="circle"></span>
+                                            <span class="check"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" name="answer" ng-value="0" checked="" ng-model="TrueOrFalseQuestion.tf_istrue">
+                                            错误
+                                            <span class="circle"></span>
+                                            <span class="check"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="col-md-1 control-label mt0">是否必选</label>
+                        <div class="col-md-6">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" name="isrequired" ng-value="1" checked="" ng-model="TrueOrFalseQuestion.tf_isrequired">
+                                            必选
+                                            <span class="circle"></span>
+                                            <span class="check"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" name="isrequired" ng-value="0" checked="" ng-model="TrueOrFalseQuestion.tf_isrequired">
+                                            非必选
+                                            <span class="circle"></span>
+                                            <span class="check"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <span class="text-danger pull-left" ng-bind="error"></span>
+            <button class="btn withripple btn-raised btn-primary" type="button" ng-click="save()" ng-disabled="!TrueOrFalseQuestionUpdateForm.$valid">修改</button>
+            <button class="btn withripple btn-raised btn-warning" type="button" ng-click="close()">关闭</button>
+        </div>
+    </form>
+</script>
+
+<!--导入弹框-->
+<script type="text/ng-template" id="ImportTrueOrFalseQuestion.html">
+    <div class="panel-body">
+        <h4>导入判断题</h4>
+        <div class="form-group">
+            <label class="col-md-12 control-label">1.请下载下方EXCEL模板；</label>
+            <div class="col-md-12">
+                <a href="{{TrueOrFalseQuestionExcel}}" class="excel"><i class="fa fa-file-excel-o" aria-hidden="true"></i></a>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-12 control-label">2.按照模板填写完成后，将模板上传；</label>
+            <div class="col-md-12">
+            <form name="uploadFileForm" ng-upload="uploadComplete(content)" action="/common/upload">
+                <div class="row">
+                    <div class="col-md-6">
+                        <input type="text" readonly="" class="form-control" placeholder="Browse...">
+                        <input type="file" name="file" required accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+                    </div>
+                    <div class="col-md-6">
+                        <button type="submit" class="btn btn-raised btn-primary" ng-disabled="$isUploading&&uploadFileForm.$valid">上传</button>
+                        <span class="text-success" ng-bind="message"></span>
+                    </div>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+        <div class="modal-footer">
+            <span class="text-danger pull-left" ng-bind="error"></span>
+            <button class="btn withripple btn-raised btn-primary" type="button" ng-click="save()" ng-disabled="!data.fileName">导入</button>
+            <button class="btn withripple btn-raised btn-warning" type="button" ng-click="close()">关闭</button>
+        </div>
+</script>

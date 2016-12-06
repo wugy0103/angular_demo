@@ -1,0 +1,162 @@
+<article ng-controller="ExaminationPaperController" class="container-fluid">
+    <!-- 下部分 -->
+    <section>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-head">
+                    <tr class="active">
+                        <th>段位</th>
+                        <th>题目总数</th>
+                        <th>选择题必选题</th>
+                        <th>选择题非选题</th>
+                        <th>判断题必选题</th>
+                        <th>判断题非必选题</th>
+                        <th>每题分值</th>
+                        <th>总分</th>
+                        <th>及格线</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="ExaminationPaper in ExaminationPapers">
+                        <td>{{ExaminationPaper.examsetting.es_leveldesc}}</td>
+                        <td>{{ExaminationPaper.pp_cqrequiredcount+ExaminationPaper.pp_cqcount+ExaminationPaper.pp_tfreqiuredcount+ExaminationPaper.pp_tfcount}}</td>
+                        <td>{{ExaminationPaper.pp_cqrequiredcount}}</td>
+                        <td>{{ExaminationPaper.pp_cqcount}}</td>
+                        <td>{{ExaminationPaper.pp_tfreqiuredcount}}</td>
+                        <td>{{ExaminationPaper.pp_tfcount}}</td>
+                        <td>{{ExaminationPaper.pp_score}}</td>
+                        <td>{{(ExaminationPaper.pp_cqrequiredcount+ExaminationPaper.pp_cqcount+ExaminationPaper.pp_tfreqiuredcount+ExaminationPaper.pp_tfcount)*ExaminationPaper.pp_score | number : 0}}</td>
+                        <td>{{ExaminationPaper.pp_passingscore}}</td>
+                        <td><a ng-click="update(ExaminationPaper)" class="pointer">编辑</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div cg-busy="ExaminationPaperPromise"></div>
+    </section>
+</article>
+
+<!--修改密码弹框-->
+<script type="text/ng-template" id="UpdateExaminationPaper.html">
+    <form name="ExaminationPaperUpdateForm">
+        <div class="panel-body">
+            <h4>修改试卷</h4>
+            <section>
+                <div class="row">
+                    
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-4 control-label text-right">段位</label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" placeholder="" disabled ng-model="ExaminationPaper.examsetting.es_leveldesc" />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-4 control-label text-right">题目总数</label>
+                        <div class="col-md-8">
+                            <input type="number" class="form-control" min="0" step="1" required disabled ng-model="ExaminationPaper.totalquestion" />
+                        </div>
+                    </div>
+                </div>
+                </div>
+                <div class="row">
+                    
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-4 control-label text-right">选择题必选题数量</label>
+                        <div class="col-md-8">
+                            <input type="number" name="cqrequiredcount" class="form-control" min="0" step="1" required ng-model="ExaminationPaper.pp_cqrequiredcount" />
+                            <small class="text-danger" ng-show="ExaminationPaperUpdateForm.cqrequiredcount.$error.min">
+                                请输入大于0的数字
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-4 control-label text-right">选择题非选题数量</label>
+                        <div class="col-md-8">
+                            <input type="number" name="cqcount" class="form-control" min="0" step="1" required ng-model="ExaminationPaper.pp_cqcount" />
+                            <small class="text-danger" ng-show="ExaminationPaperUpdateForm.cqcount.$error.min">
+                                请输入大于0的数字
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                </div>
+                <div class="row">
+                    
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-4 control-label text-right">判断题必选题数量</label>
+                        <div class="col-md-8">
+                            <input type="number" name="tfreqiuredcount" class="form-control" min="0" step="1" required ng-model="ExaminationPaper.pp_tfreqiuredcount" />
+                            <small class="text-danger" ng-show="ExaminationPaperUpdateForm.tfreqiuredcount.$error.min">
+                                请输入大于0的数字
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-4 control-label text-right">判断题非选题数量</label>
+                        <div class="col-md-8">
+                            <input type="number" name="tfcount" class="form-control" min="0" step="1" required ng-model="ExaminationPaper.pp_tfcount" />
+                            <small class="text-danger" ng-show="ExaminationPaperUpdateForm.tfcount.$error.min">
+                                请输入大于0的数字
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                </div>
+                <div class="row">
+                    
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-4 control-label text-right">每题分值</label>
+                        <div class="col-md-8">
+                            <input type="text" name="score" class="form-control" min="0" required disabled ng-model="ExaminationPaper.pp_score" />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-4 control-label text-right">总分</label>
+                        <div class="col-md-8">
+                            <input type="number" name="totalscore" class="form-control" ng-min="ExaminationPaper.pp_passingscore" step="0.01" required ng-model="ExaminationPaper.pp_totalscore" />
+                            <small class="text-danger" ng-show="ExaminationPaperUpdateForm.totalscore.$error.min">
+                                请输入大于及格线的数字
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                </div>
+                <div class="row">
+                    
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-4 control-label text-right">及格线</label>
+                        <div class="col-md-8">
+                            <input type="number" class="form-control" name="passingscore" ng-min="0" ng-max="ExaminationPaper.pp_totalscore" step="0.1" required ng-model="ExaminationPaper.pp_passingscore" />
+                            <small class="text-danger" ng-show="ExaminationPaperUpdateForm.passingscore.$error.min">
+                                请输入大于0的数字
+                            </small>
+                            <small class="text-danger" ng-show="ExaminationPaperUpdateForm.passingscore.$error.max">
+                                请输入小于总分的数字
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </section>
+        </div>
+        <div class="modal-footer">
+            <span class="text-danger pull-left" ng-bind="error"></span>
+            <button class="btn withripple btn-raised btn-primary" type="button" ng-click="save()" ng-disabled="!ExaminationPaperUpdateForm.$valid">修改</button>
+            <button class="btn withripple btn-raised btn-warning" type="button" ng-click="close()">关闭</button>
+        </div>
+    </form>
+</script>

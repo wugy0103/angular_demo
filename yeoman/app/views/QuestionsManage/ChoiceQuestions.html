@@ -1,0 +1,405 @@
+<article ng-controller="ChoiceQuestionsController" class="container-fluid">
+    <!-- 上部分 -->
+    <section class="row">
+        <div class="form-group col-md-2">
+            <label class="col-md-4 control-label">题型</label>
+            <div class="col-md-8">
+                <ui-select ng-model="data.cq_isrequired" theme="bootstrap">
+                    <ui-select-match allow-clear="true" placeholder="全部">{{$select.selected.NAME}}</ui-select-match>
+                    <ui-select-choices repeat="item.STATUS as item in question | filter: $select.search">
+                        <span ng-bind-html="item.NAME | highlight: $select.search"></span>
+                    </ui-select-choices>
+                </ui-select>
+            </div>
+        </div>
+        <div class="form-group col-md-2">
+            <label class="col-md-4 control-label">试题</label>
+            <div class="col-md-8">
+                <input type="text" class="form-control" ng-model="data.cq_title">
+            </div>
+        </div>
+    </section>
+    <section class="row">
+        <div class="col-md-6">
+            <div class="button-first">
+                <button type="button" class="btn btn-raised btn-primary" ng-click="query()">查询</button>
+                <button type="button" class="btn btn-raised btn-default" ng-click="reset()">重置</button>
+                <button type="button" class="btn btn-raised btn-primary ml20" ng-click="add()">新增</button>
+                <button type="button" class="btn btn-raised btn-default" ng-click="import()">导入</button>
+            </div>
+            <div class="button-first">
+                <button type="button" class="btn btn-raised btn-warning" confirm="确定删除吗？" confirm-title="删除" confirm-ok="确定" confirm-cancel="取消" ng-click="remove()">删除</button>
+            </div>
+        </div>
+    </section>
+    <!-- 下部分 -->
+    <section>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-head">
+                    <tr class="active">
+                        <th>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="isAllSelected" ng-click="toggleAll()">
+                                    <span class="checkbox-material"><span class="check"></span></span>
+                                </label>
+                            </div>
+                        </th>
+                        <th>序号</th>
+                        <th>试题</th>
+                        <th>答案</th>
+                        <th>题型</th>
+                        <th>创建时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="ChoiceQuestion in ChoiceQuestions | orderBy:cq_createtime:true">
+                        <td>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" checked="" ng-model="ChoiceQuestion.selected" ng-change="optionToggled()" ><span class="checkbox-material"><span class="check"></span></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td>{{($index+1)+(((PageIndex||1)-1)*PageSize)}}</td>
+                        <td>{{ChoiceQuestion.cq_title| limitTo:30}}</td>
+                        <td>{{ChoiceQuestion.cq_answer}}</td>
+                        <td>{{ChoiceQuestion.cq_isrequired===true?"必选":"非必选"}}</td>
+                        <td>{{ChoiceQuestion.cq_createtime*1000 | date:'yyyy-MM-dd HH:mm'}}</td>
+                        <td><a ng-click="update(ChoiceQuestion)" class="pointer">编辑</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div cg-busy="ChoiceQuestionPromise"></div>
+        <div class="row">
+            <div class="col-md-9">
+                <select class="page-size" ng-model="PageSize" ng-change="pageChanged()">
+                    <option value="20" ng-selected="true">每页显示20条</option>
+                    <option value="40">每页显示40条</option>
+                    <option value="60">每页显示60条</option>
+                    <option value="80">每页显示80条</option>
+                    <option value="100">每页显示100条</option>
+                </select>
+                <uib-pagination ng-model="PageIndex" ng-change="pageChanged()" total-items="ChoiceQuestionCount" max-size="maxSize" items-per-page="PageSize" class="pagination-sm" boundary-link-numbers="true" rotate="false" previous-text="上一页" next-text="下一页"></uib-pagination>
+            </div>
+            <div class="col-md-3 text-right">
+                <span>跳转到</span>
+                <input type="text" ng-model="toPageNum" class="variant-form-control">
+                <button ng-click="setPage()" class="to-page-num">确定</button>
+            </div>
+        </div>
+    </section>
+</article>
+
+<!--添加弹框-->
+<script type="text/ng-template" id="AddChoiceQuetion.html">
+    <form name="ChoiceQuetionAddForm">
+        <div class="panel-body">
+            <h4>添加选择题</h4>
+            <div class="form-group">
+                <label class="col-md-1 control-label">题目</label>
+                <div class="col-md-11">
+                    <textarea class="form-control"  id="titleText" placeholder="请输入题目" ng-model="moulderData.cq_title" ng-change="changeTit('cq_title',moulderData.cq_title)"></textarea>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">选项 A</label>
+                        <div class="col-md-10">
+                            <input type="text" class="form-control" required  ng-model="moulderData.cq_optiona" ng-change="changeTit('cq_optiona',moulderData.cq_optiona)" ng-focus='titleFocus()' />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">选项 B</label>
+                        <div class="col-md-10">
+                            <input type="text" class="form-control" required ng-model="moulderData.cq_optionb" ng-change="changeTit('cq_optionb',moulderData.cq_optionb)" ng-focus='titleFocus()'/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">选项 C</label>
+                        <div class="col-md-10">
+                            <input type="text" class="form-control" required ng-model="moulderData.cq_optionc" ng-change="changeTit('cq_optionc',moulderData.cq_optionc)" ng-focus='titleFocus()'/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">选项 D</label>
+                        <div class="col-md-10">
+                            <input type="text" class="form-control" required ng-model="moulderData.cq_optiond"  ng-change="changeTit('cq_optiond',moulderData.cq_optiond)" ng-focus='titleFocus(m)'/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="col-md-1 control-label mt0">正确答案</label>
+                        <div class="col-md-8">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" required name="answer" value="A" checked="" ng-model="data.cq_answer">
+                                            选项A
+                                            <span class="circle"></span>
+                                            <span class="check"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" required name="answer" value="B" checked="" ng-model="data.cq_answer">
+                                            选项B
+                                            <span class="circle"></span>
+                                            <span class="check"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" required name="answer" value="C" checked="" ng-model="data.cq_answer">
+                                            选项C
+                                            <span class="circle"></span>
+                                            <span class="check"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" required name="answer" value="D" checked="" ng-model="data.cq_answer">
+                                            选项D
+                                            <span class="circle"></span>
+                                            <span class="check"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="col-md-1 control-label mt0">是否必选</label>
+                        <div class="col-md-8">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" required name="isrequired" ng-value="1" checked="" ng-model="data.cq_isrequired">
+                                            必选
+                                            <span class="circle"></span>
+                                            <span class="check"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" required name="isrequired" ng-value="0" checked="" ng-model="data.cq_isrequired">
+                                            非必选
+                                            <span class="circle"></span>
+                                            <span class="check"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <span class="text-danger pull-left" ng-bind="error"></span>
+            <button class="btn withripple btn-raised btn-primary" type="button" ng-click="save()" ng-disabled="!ChoiceQuetionAddForm.$valid">保存</button>
+            <button class="btn withripple btn-raised btn-warning" type="button" ng-click="close()">关闭</button>
+        </div>
+    </form>
+</script>
+<!--修改弹框-->
+<script type="text/ng-template" id="UpdateChoiceQuetion.html">
+    <form name="ChoiceQuetionUpdateForm">
+        <div class="panel-body">
+            <h4>修改选择题</h4>
+            <div class="form-group">
+                <label class="col-md-1 control-label">题目</label>
+                <div class="col-md-11">
+                    <textarea class="form-control" ng-model="ChoiceQuestion.cq_title" placeholder="请输入题目" ng-change="changeTit('cq_title',ChoiceQuestion.cq_title)"></textarea>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">选项 A</label>
+                        <div class="col-md-10">
+                            <input type="text" class="form-control" required ng-model="ChoiceQuestion.cq_optiona" ng-change="changeTit('cq_optiona',ChoiceQuestion.cq_optiona)"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">选项 B</label>
+                        <div class="col-md-10">
+                            <input type="text" class="form-control" required ng-model="ChoiceQuestion.cq_optionb" ng-change="changeTit('cq_optionb',ChoiceQuestion.cq_optionb)"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">选项 C</label>
+                        <div class="col-md-10">
+                            <input type="text" class="form-control" required ng-model="ChoiceQuestion.cq_optionc" ng-change="changeTit('cq_optionc',ChoiceQuestion.cq_optionc)"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">选项 D</label>
+                        <div class="col-md-10">
+                            <input type="text" class="form-control" required ng-model="ChoiceQuestion.cq_optiond" ng-change="changeTit('cq_optiond',ChoiceQuestion.cq_optiond)"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="col-md-1 control-label mt0">正确答案</label>
+                        <div class="col-md-8">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" required name="answer" value="A" checked="" ng-model="ChoiceQuestion.cq_answer">
+                                            选项A
+                                            <span class="circle"></span>
+                                            <span class="check"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" required name="answer" value="B" checked="" ng-model="ChoiceQuestion.cq_answer">
+                                            选项B
+                                            <span class="circle"></span>
+                                            <span class="check"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" required name="answer" value="C" checked="" ng-model="ChoiceQuestion.cq_answer">
+                                            选项C
+                                            <span class="circle"></span>
+                                            <span class="check"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" required name="answer" value="D" checked="" ng-model="ChoiceQuestion.cq_answer">
+                                            选项D
+                                            <span class="circle"></span>
+                                            <span class="check"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="col-md-1 control-label mt0">是否必选</label>
+                        <div class="col-md-8">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" required name="isrequired" ng-value="1" checked="" ng-model="ChoiceQuestion.cq_isrequired">
+                                            必选
+                                            <span class="circle"></span>
+                                            <span class="check"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" required name="isrequired" ng-value="0" checked="" ng-model="ChoiceQuestion.cq_isrequired">
+                                            非必选
+                                            <span class="circle"></span>
+                                            <span class="check"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <span class="text-danger pull-left" ng-bind="error"></span>
+            <button class="btn withripple btn-raised btn-primary" type="button" ng-click="save()" ng-disabled="!ChoiceQuetionUpdateForm.$valid">修改</button>
+            <button class="btn withripple btn-raised btn-warning" type="button" ng-click="close()">关闭</button>
+        </div>
+    </form>
+</script>
+
+<!--导入弹框-->
+<script type="text/ng-template" id="ImportChoiceQuetion.html">
+    <div class="panel-body">
+        <h4>导入选择题</h4>
+        <div class="form-group">
+            <label class="col-md-12 control-label">1.请下载下方EXCEL模板；</label>
+            <div class="col-md-12">
+                <a href="{{ChoiceQuestionExcel}}" class="excel"><i class="fa fa-file-excel-o" aria-hidden="true"></i></a>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-12 control-label">2.按照模板填写完成后，将模板上传；</label>
+            <div class="col-md-12">
+            <form name="uploadFileForm" ng-upload="uploadComplete(content)" action="/common/upload">
+                <div class="row">
+                    <div class="col-md-6">
+                        <input type="text" readonly="" class="form-control" placeholder="Browse...">
+                        <input type="file" name="file" required accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+                    </div>
+                    <div class="col-md-6">
+                        <button type="submit" class="btn btn-raised btn-primary" ng-disabled="$isUploading&&uploadFileForm.$valid">上传</button>
+                        <span class="text-success" ng-bind="message"></span>
+                    </div>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+        <div class="modal-footer">
+            <span class="text-danger pull-left" ng-bind="error"></span>
+            <button class="btn withripple btn-raised btn-primary" type="button" ng-click="save()" ng-disabled="!data.fileName">导入</button>
+            <button class="btn withripple btn-raised btn-warning" type="button" ng-click="close()">关闭</button>
+        </div>
+</script>

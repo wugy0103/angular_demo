@@ -1,0 +1,215 @@
+<article ng-controller="ExaminationResultsController" class="container-fluid">
+    <!-- 上部分 -->
+    <form action="/examscore/exportUserInfo" method="POST" ng-submit="export()" ng-enter="query()">
+    <section class="row">
+        <div class="form-group col-lg-2">
+            <label class="col-md-4 control-label">姓名</label>
+            <div class="col-md-8">
+                <input type="text" class="form-control" ng-model="data.real_name" name="real_name">
+            </div>
+        </div>
+        <div class="form-group col-lg-2">
+            <label class="col-md-4 control-label">身份证号</label>
+            <div class="col-md-8">
+                <input type="text" class="form-control" ng-model="data.id_card" name="id_card">
+            </div>
+        </div>
+        <div class="form-group col-lg-2">
+            <label class="col-md-4 control-label">院校</label>
+            <div class="col-md-8">
+                <input type="text" class="form-control" ng-model="data.school_code" name="school_code">
+            </div>
+        </div>
+        <div class="form-group col-lg-2">
+            <label class="col-md-4 control-label">项目</label>
+            <div class="col-md-8">
+                <ui-select ng-model="data.ex_primaryitem" theme="bootstrap" name="ex_primaryitem">
+                    <ui-select-match allow-clear="true" placeholder="全部">{{$select.selected.dw_itemname}}</ui-select-match>
+                    <ui-select-choices repeat="item.dw_itemid as item in projects | filter: $select.search">
+                        <span ng-bind-html="item.dw_itemname | highlight: $select.search"></span>
+                    </ui-select-choices>
+                </ui-select>
+            </div>
+        </div>
+        <div class="form-group col-lg-2">
+            <label class="col-md-4 control-label">段位</label>
+            <div class="col-md-8">
+                <ui-select ng-model="data.ex_level" theme="bootstrap" name="ex_level">
+                    <ui-select-match allow-clear="true" placeholder="全部">{{$select.selected.es_leveldesc}}</ui-select-match>
+                    <ui-select-choices repeat="item.es_level as item in levels | filter: $select.search">
+                        <span ng-bind-html="item.es_leveldesc | highlight: $select.search"></span>
+                    </ui-select-choices>
+                </ui-select>
+            </div>
+        </div>
+        <div class="form-group col-lg-2">
+            <label class="col-md-4 control-label">晋段成绩</label>
+            <div class="col-md-8">
+                <ui-select ng-model="data.passStatus" theme="bootstrap" name="passStatus">
+                    <ui-select-match allow-clear="true" placeholder="全部">{{$select.selected.NAME}}</ui-select-match>
+                    <ui-select-choices repeat="item.STATUS as item in result | filter: $select.search">
+                        <span ng-bind-html="item.NAME | highlight: $select.search"></span>
+                    </ui-select-choices>
+                </ui-select>
+            </div>
+        </div>
+        <div class="form-group col-md-2">
+            <label class="col-md-4 control-label">考试时间</label>
+            <div class="col-md-8">
+                <input type="text" class="form-control" uib-datepicker-popup="yyyy-MM-dd" name="examBegintime" ng-model="data.examBegintime" is-open="BegintimeOpened.opened" datepicker-options="beginDatepickerOptions" show-button-bar="false" date-to-timestamp ng-change="updateEndDate()">
+                <i class="glyphicon glyphicon-calendar rili-icon" ng-click="openBegintime()"></i>
+            </div>
+        </div>
+        <div class="form-group col-md-2">
+            <label class="col-md-4 control-label text-center">至</label>
+            <div class="col-md-8">
+                <input type="text" class="form-control" uib-datepicker-popup="yyyy-MM-dd" name="examEndtime" ng-model="data.examEndtime" is-open="EndtimeOpened.opened" datepicker-options="endDatepickerOptions" show-button-bar="false" date-to-timestamp ng-change="updateBeginDate()">
+                <i class="glyphicon glyphicon-calendar rili-icon" ng-click="openEndtime()"></i>
+            </div>
+        </div>
+    </section>
+    <div class="button-first">
+        <button type="button" class="btn btn-raised btn-primary" ng-click="query()">查询</button>
+        <button type="button" class="btn btn-raised btn-default" ng-click="reset()">重置</button>
+        <button type="submit" class="btn btn-raised btn-detault">导出</button>
+    </div>
+    </form>
+    <!-- 下部分 -->
+    <section>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-head">
+                    <tr class="active">
+                        <th>序号</th>
+                        <th>姓名</th>
+                        <th>身份证号</th>
+                        <th>院校</th>
+                        <th>考试项目</th>
+                        <th>段位</th>
+                        <th>考试时间</th>
+                        <th>分数</th>
+                        <th>晋段成绩</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="ExaminationResult in ExaminationResults">
+                        <td>{{($index+1)+(((PageIndex||1)-1)*PageSize)}}</td>
+                        <td>{{ExaminationResult.userInfo.real_name}}</td>
+                        <td>{{ExaminationResult.userInfo.id_card}}</td>
+                        <td>{{ExaminationResult.userInfo.school.school_name}}</td>
+                        <td>{{ExaminationResult.examenroll.item.dw_itemname}}</td>
+                        <td>{{ExaminationResult.exampapersetting.examsetting.es_leveldesc}}</td>
+                        <td>{{ExaminationResult.es_starttime*1000|date:"yyyy-MM-dd HH:mm"}}</td>
+                        <td>{{ExaminationResult.es_score}}</td>
+                        <td>
+                            <span ng-if="ExaminationResult.es_score<ExaminationResult.es_passscore" >未达标</span>
+                            <span ng-if="ExaminationResult.es_score>=ExaminationResult.es_passscore" >达标</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div cg-busy="ExaminationResultPromise"></div>
+        <div class="row">
+            <div class="col-md-9">
+                <select class="page-size" ng-model="PageSize" ng-change="pageChanged()">
+                    <option value="20" ng-selected="true">每页显示20条</option>
+                    <option value="40">每页显示40条</option>
+                    <option value="60">每页显示60条</option>
+                    <option value="80">每页显示80条</option>
+                    <option value="100">每页显示100条</option>
+                </select>
+                <uib-pagination ng-model="PageIndex" ng-change="pageChanged()" total-items="ExaminationResultCount" max-size="maxSize" items-per-page="PageSize" class="pagination-sm" boundary-link-numbers="true" rotate="false" previous-text="上一页" next-text="下一页"></uib-pagination>
+            </div>
+            <div class="col-md-3 text-right">
+                <span>跳转到</span>
+                <input type="text" ng-model="toPageNum" class="variant-form-control">
+                <button ng-click="setPage()" class="to-page-num">确定</button>
+            </div>
+        </div>
+    </section>
+</article>
+
+<!--用户信息-->
+<script type="text/ng-template" id="UserInfoById.html">
+    <div class="modal-header">
+        <h4>用户信息</h4>
+    </div>
+    <div class="modal-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-head">
+                    <tr class="active">
+                       <th>猫号</th>
+                        <th>性别</th>
+                        <th>年龄</th>
+                        <th>工作</th>
+                        <th>病史</th>
+                        <th>身高</th>
+                        <th>体重</th>
+                        <th>个性签名</th>
+                        <th>省份</th>
+                        <th>城市</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="UserInfoById in userInfoById">
+                         <td>{{UserInfoById.user_id}}</td>
+                        <td>
+                            <span ng-if="UserInfoById.hm_ui_sex==1">男</span>
+                            <span ng-if="UserInfoById.hm_ui_sex==2">女</span>
+                        </td>
+                        <td>{{UserInfoById.hm_ui_age}}</td>
+                        <td>{{UserInfoById.hm_ui_job}}</td>
+                        <td>{{UserInfoById.hm_ui_casehistory}}</td>
+                        <td>{{UserInfoById.hm_ui_height}}</a></td>
+                        <td>{{UserInfoById.hm_ui_weight}}</td>
+                        <td>{{UserInfoById.hm_ui_signature}}</td>
+                        <td>{{UserInfoById.provinceName}}</td>
+                        <td>{{UserInfoById.cityName}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        </div>
+        <div class="modal-footer">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-12">
+                        <button class="btn btn-warning" type="button" ng-click="close()">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </script>
+        <!--修改密码弹框-->
+        <script type="text/ng-template" id="Update.html">
+            <form name="SystemDictionaryInformationUpdateForm">
+                <div class="panel-body">
+                    <h4>修改密码</h4>
+                    <section class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="col-md-2 control-label">猫号</label>
+                                <div class="col-md-10">
+                                    <input type="text" class="form-control" placeholder="" disabled ng-model="UserInfo.user_id" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="col-md-2 control-label">密码</label>
+                                <div class="col-md-10">
+                                    <input type="text" class="form-control" required ng-model="UserInfo.hm_u_pwd" />
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+                <div class="modal-footer">
+                    <span class="text-danger pull-left" ng-bind="error"></span>
+                    <button class="btn withripple btn-raised btn-primary" type="button" ng-click="save()" ng-disabled="!SystemDictionaryInformationUpdateForm.$valid">修改</button>
+                    <button class="btn withripple btn-raised btn-warning" type="button" ng-click="close()">关闭</button>
+                </div>
+            </form>
+        </script>

@@ -1,0 +1,73 @@
+<article ng-controller="ProjectController" class="container-fluid">
+    <!-- 上部分 -->
+    <section class="row">
+        <div class="col-lg-12">
+            <div class="button-first">
+                <button type="button" class="btn btn-raised btn-primary" ng-click="add()">新增</button>
+            </div>
+        </div>
+    </section>
+    <!-- 下部分 -->
+    <section>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-head">
+                    <tr class="active">
+                        <th>序号</th>
+                        <th>项目名称</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="Project in Projects">
+                        <td>{{$index+1}}</td>
+                        <td>{{Project.dw_itemname}}</td>
+                        <td>
+                            <a ng-click="update(Project)" class="pointer">编辑</a>
+                            <a ng-click="remove(Project.dw_itemid)" class="pointer" confirm="确定删除吗？" confirm-title="删除" confirm-ok="确定" confirm-cancel="取消">删除</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div cg-busy="ProjectPromise"></div>
+    </section>
+</article>
+<!--添加项目弹框-->
+<script type="text/ng-template" id="AddProject.html">
+    <form name="ProjectAddForm">
+        <div class="panel-body">
+            <h4>添加项目</h4>
+            <div class="form-group">
+                <label class="col-md-2 control-label">项目名称</label>
+                <div class="col-md-10">
+                    <input type="text" class="form-control" placeholder="" ng-model="data.dw_itemname" required />
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <span class="text-danger pull-left" ng-bind="error"></span>
+            <button class="btn withripple btn-raised btn-primary" type="button" ng-click="save()" ng-disabled="!ProjectAddForm.$valid">添加</button>
+            <button class="btn withripple btn-raised btn-warning" type="button" ng-click="close()">关闭</button>
+        </div>
+    </form>
+</script>
+<!--修改项目弹框-->
+<script type="text/ng-template" id="UpdateProject.html">
+    <form name="ProjectUpdateForm">
+        <div class="panel-body">
+            <h4>修改项目</h4>
+            <div class="form-group">
+                <label class="col-md-2 control-label">项目名称</label>
+                <div class="col-md-10">
+                    <input type="text" class="form-control" placeholder="" ng-model="data.dw_itemname" required />
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <span class="text-danger pull-left" ng-bind="error"></span>
+            <button class="btn withripple btn-raised btn-primary" type="button" ng-click="save()" ng-disabled="!ProjectUpdateForm.$valid">修改</button>
+            <button class="btn withripple btn-raised btn-warning" type="button" ng-click="close()">关闭</button>
+        </div>
+    </form>
+</script>

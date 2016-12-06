@@ -1,0 +1,182 @@
+<article ng-controller="RegisteredUsersController" class="container-fluid">
+    <!-- 上部分 -->
+    <form action="/userInfo/exportUserInfo" method="POST" ng-submit="export()" ng-enter="query()">
+    <section class="row">
+        <div class="form-group col-lg-2">
+            <label class="col-md-4 control-label">姓名</label>
+            <div class="col-md-8">
+                <input type="text" class="form-control" ng-model="data.real_name" name="real_name">
+            </div>
+        </div>
+        <div class="form-group col-lg-2">
+            <label class="col-md-4 control-label">身份证号</label>
+            <div class="col-md-8">
+                <input type="text" class="form-control" ng-model="data.id_card" name="id_card">
+            </div>
+        </div>
+        <div class="form-group col-lg-2">
+            <label class="col-md-4 control-label">手机号</label>
+            <div class="col-md-8">
+                <input type="text" class="form-control" ng-model="data.telephone" name="telephone">
+            </div>
+        </div>
+        <div class="form-group col-md-2">
+            <label class="col-md-4 control-label">院校类型</label>
+            <div class="col-md-8">
+                <ui-select ng-model="data.school_type" theme="bootstrap" name="school_type">
+                    <ui-select-match allow-clear="true" placeholder="全部">{{$select.selected.schooltype_name}}</ui-select-match>
+                    <ui-select-choices repeat="item.schooltype_id as item in schoolType | filter: $select.search">
+                        <span ng-bind-html="item.schooltype_name | highlight: $select.search"></span>
+                    </ui-select-choices>
+                </ui-select>
+            </div>
+        </div>
+        <div class="form-group col-lg-2">
+            <label class="col-md-4 control-label">院校</label>
+            <div class="col-md-8">
+                <input type="text" class="form-control" ng-model="data.school_name" name="school_name">
+            </div>
+        </div>
+        <div class="form-group col-lg-2">
+            <label class="col-md-4 control-label">授课老师</label>
+            <div class="col-md-8">
+                <input type="text" class="form-control" ng-model="data.teacher_name" name="teacher_name">
+            </div>
+        </div>
+        <div class="form-group col-md-2">
+            <label class="col-md-4 control-label">省份</label>
+            <div class="col-md-8">
+                <ui-select ng-model="data.pro_code" theme="bootstrap" on-select="initCity($item)" name="pro_code">
+                    <ui-select-match allow-clear="true" placeholder="全部">{{$select.selected.city_name}}</ui-select-match>
+                    <ui-select-choices repeat="item.city_code as item in provinces | orderBy:'city_code' | filter: $select.search">
+                        <span ng-bind-html="item.city_name | highlight: $select.search"></span>
+                    </ui-select-choices>
+                </ui-select>
+            </div>
+        </div>
+        <div class="form-group col-md-2">
+            <label class="col-md-4 control-label">城市</label>
+            <div class="col-md-8">
+                <ui-select ng-model="data.city_code" theme="bootstrap" ng-disabled="data.pro_code==undefined?true:false" name="city_code">
+                    <ui-select-match allow-clear="true" placeholder="全部">{{$select.selected.city_name}}</ui-select-match>
+                    <ui-select-choices repeat="item.city_code as item in cities | orderBy:'city_code' | filter: $select.search">
+                        <span ng-bind-html="item.city_name | highlight: $select.search"></span>
+                    </ui-select-choices>
+                </ui-select>
+            </div>
+        </div>
+    </section>
+    <div class="button-first">
+        <button type="button" class="btn btn-raised btn-primary" ng-click="query()">查询</button>
+        <button type="button" class="btn btn-raised btn-default" ng-click="reset()">重置</button>
+        <button type="submit" class="btn btn-raised btn-detault">导出</button>
+    </div>
+    </form>
+    <!-- 下部分 -->
+    <section>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-head">
+                    <tr class="active">
+                        <th>序号</th>
+                        <th>姓名</th>
+                        <th>身份证号</th>
+                        <th>手机号</th>
+                        <th>院校类型</th>
+                        <th>省份</th>
+                        <th>城市</th>
+                        <th>院校</th>
+                        <th>授课老师</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="RegisteredUser in RegisteredUsers">
+                        <td>{{($index+1)+(((PageIndex||1)-1)*PageSize)}}</td>
+                        <td>{{RegisteredUser.real_name}}</td>
+                        <td>{{RegisteredUser.id_card}}</td>
+                        <td>{{RegisteredUser.telephone}}</td>
+                        <td>{{RegisteredUser.schooltype.schooltype_name}}</td>
+                        <td>{{RegisteredUser.proviencecity_name | getStringByIndex:'|':0}}</td>
+                        <td>{{RegisteredUser.proviencecity_name | getStringByIndex:'|':1}}</td>
+                        <td>{{RegisteredUser.school.school_name}}</td>
+                        <td>{{RegisteredUser.teacher.userInfo.real_name}}</td>
+                        <td><a ng-click="detail(RegisteredUser)" class="pointer">更多</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div cg-busy="RegisteredUserPromise"></div>
+        <div class="row">
+            <div class="col-md-9">
+                <select class="page-size" ng-model="PageSize" ng-change="pageChanged()">
+                    <option value="20" ng-selected="true">每页显示20条</option>
+                    <option value="40">每页显示40条</option>
+                    <option value="60">每页显示60条</option>
+                    <option value="80">每页显示80条</option>
+                    <option value="100">每页显示100条</option>
+                </select>
+                <uib-pagination ng-model="PageIndex" ng-change="pageChanged()" total-items="RegisteredUserCount" max-size="maxSize" items-per-page="PageSize" class="pagination-sm" boundary-link-numbers="true" rotate="false" previous-text="上一页" next-text="下一页"></uib-pagination>
+            </div>
+            <div class="col-md-3 text-right">
+                <span>跳转到</span>
+                <input type="text" ng-model="toPageNum" class="variant-form-control">
+                <button ng-click="setPage()" class="to-page-num">确定</button>
+            </div>
+        </div>
+    </section>
+</article>
+
+<!--用户信息-->
+<script type="text/ng-template" id="RegisteredUserDetail.html">
+    <div class="modal-header">
+        <h4>用户信息</h4>
+    </div>
+    <div class="modal-body">
+        <div class="row form-group">
+            <div class="col-md-3 text-right">姓名</div>
+            <div class="col-md-6">{{userInfo.real_name}}</div>
+            <div class="col-md-3">
+                <img src="{{PHOTOS}}{{userInfo.headimage_url}}" alt="" style="width:50px;">
+            </div>
+        </div>
+        <div class="row form-group">
+            <div class="col-md-3 text-right">通信地址</div>
+            <div class="col-md-9">{{userInfo.address}}</div>
+        </div>
+        <div class="row form-group">
+            <div class="col-md-3 text-right">项目及段位</div>
+            <div class="col-md-9">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-head">
+                            <tr class="active">
+                               <th>项目</th>
+                                <th>段位</th>
+                                <th>晋段时间</th>
+                                <th>晋段状态</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in projectAndLevel">
+                                <td>{{item.dd_itemdandesc | getStringByIndex:'|':0}}</td>
+                                <td>{{item.dd_itemdandesc | getStringByIndex:'|':1}}</td>
+                                <td>{{item.dp_passedtime*1000|date:'yyyy-MM-dd HH:mm'}}</td>
+                                <td>{{item.examstatus}}</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-12">
+                        <button class="btn btn-warning" type="button" ng-click="close()">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
